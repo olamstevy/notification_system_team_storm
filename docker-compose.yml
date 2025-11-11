@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:15
+    image: postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -8,25 +8,26 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
 
   redis:
-    image: redis:latest
+    image: redis
     ports:
       - "6379:6379"
 
   rabbitmq:
-    image: rabbitmq:management
+    image: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
 
   api_gateway:
     build:
-      context: apps/api_gateway
+      context: .
+      dockerfile: apps/api_gateway/Dockerfile
     container_name: api_gateway
     env_file:
       - apps/api_gateway/.env
@@ -39,7 +40,8 @@ services:
 
   user_service:
     build:
-      context: apps/user_service
+      context: .
+      dockerfile: apps/user_service/Dockerfile
     container_name: user_service
     env_file:
       - apps/user_service/.env
@@ -52,7 +54,8 @@ services:
 
   template_service:
     build:
-      context: apps/template_service
+      context: .
+      dockerfile: apps/template_service/Dockerfile
     container_name: template_service
     env_file:
       - apps/template_service/.env
@@ -65,7 +68,8 @@ services:
 
   email_service:
     build:
-      context: apps/email_service
+      context: .
+      dockerfile: apps/email_service/Dockerfile
     container_name: email_service
     env_file:
       - apps/email_service/.env
@@ -78,7 +82,8 @@ services:
 
   push_service:
     build:
-      context: apps/push_service
+      context: .
+      dockerfile: apps/push_service/Dockerfile
     container_name: push_service
     env_file:
       - apps/push_service/.env
