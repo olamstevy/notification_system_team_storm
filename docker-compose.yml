@@ -1,0 +1,93 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  api_gateway:
+    build:
+      context: apps/api_gateway
+    container_name: api_gateway
+    env_file:
+      - apps/api_gateway/.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+
+  user_service:
+    build:
+      context: apps/user_service
+    container_name: user_service
+    env_file:
+      - apps/user_service/.env
+    ports:
+      - "3001:3000"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+
+  template_service:
+    build:
+      context: apps/template_service
+    container_name: template_service
+    env_file:
+      - apps/template_service/.env
+    ports:
+      - "3002:3000"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+
+  email_service:
+    build:
+      context: apps/email_service
+    container_name: email_service
+    env_file:
+      - apps/email_service/.env
+    ports:
+      - "3003:3000"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+
+  push_service:
+    build:
+      context: apps/push_service
+    container_name: push_service
+    env_file:
+      - apps/push_service/.env
+    ports:
+      - "3004:3000"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+
+volumes:
+  pgdata:

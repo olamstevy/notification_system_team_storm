@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/api_gateway/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/api_gateway/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/api_gateway",
+  "projects": {
+    "api_gateway": {
+      "type": "application",
+      "root": "apps/api_gateway",
+      "entryFile": "main",
+      "sourceRoot": "apps/api_gateway/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/api_gateway/tsconfig.app.json"
+      }
+    },
+    "email_service": {
+      "type": "application",
+      "root": "apps/email_service",
+      "entryFile": "main",
+      "sourceRoot": "apps/email_service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/email_service/tsconfig.app.json"
+      }
+    },
+    "push_service": {
+      "type": "application",
+      "root": "apps/push_service",
+      "entryFile": "main",
+      "sourceRoot": "apps/push_service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/push_service/tsconfig.app.json"
+      }
+    },
+    "template_service": {
+      "type": "application",
+      "root": "apps/template_service",
+      "entryFile": "main",
+      "sourceRoot": "apps/template_service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/template_service/tsconfig.app.json"
+      }
+    },
+    "user_service": {
+      "type": "application",
+      "root": "apps/user_service",
+      "entryFile": "main",
+      "sourceRoot": "apps/user_service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/user_service/tsconfig.app.json"
+      }
+    }
+  }
+}

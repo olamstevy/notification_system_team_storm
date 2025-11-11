@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id String @id @default(uuid())
+  name String
+  email String @unique
+  push_token String?
+  password String
+  preferences user_preference? // required
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model user_preference {
+  user_id String @id @unique
+  email Boolean @default(true)
+  push Boolean @default(true)
+
+  user user @relation(fields: [user_id], references: [id])
+}

@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model notification_status {
+  id String @id @default(uuid())
+  notification_type NotificationType
+  user_id String
+  status NotificationStatus
+  request_id String @unique
+  error String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+enum NotificationType {
+  email
+  push
+}
+
+enum NotificationStatus {
+  pending
+  delivered
+  failed
+}
