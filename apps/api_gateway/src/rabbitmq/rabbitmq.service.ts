@@ -23,7 +23,7 @@ export class RabbitMQService implements OnModuleInit {
     try {
       const rabbitmqUrl =
         process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672';
-      
+
       this.connection = amqp.connect([rabbitmqUrl]);
 
       this.connection.on('connect', () => {

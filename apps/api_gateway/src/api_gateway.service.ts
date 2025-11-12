@@ -11,7 +11,10 @@ import { RabbitMQService } from './rabbitmq/rabbitmq.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationStatusDto } from './dto/update-notification-status.dto';
 import { ApiResponse } from './interfaces/response.interface';
-import { NotificationStatus, NotificationType } from './enums/notification.enum';
+import {
+  NotificationStatus,
+  NotificationType,
+} from './enums/notification.enum';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 
@@ -23,11 +26,9 @@ export class ApiGatewayService {
     private readonly prisma: PrismaService,
     private readonly rabbitmq: RabbitMQService,
     private readonly httpService: HttpService,
-  ) {}
+  ) { }
 
-  async createNotification(
-    dto: CreateNotificationDto,
-  ): Promise<ApiResponse> {
+  async createNotification(dto: CreateNotificationDto): Promise<ApiResponse> {
     // Check for idempotency - prevent duplicate notifications
     const existingNotification = await this.prisma.notification.findUnique({
       where: { request_id: dto.request_id },
@@ -47,9 +48,7 @@ export class ApiGatewayService {
         this.httpService.get(`${userServiceUrl}/api/v1/users/${dto.user_id}`),
       );
     } catch (error) {
-      throw new NotFoundException(
-        `User with id ${dto.user_id} not found`,
-      );
+      throw new NotFoundException(`User with id ${dto.user_id} not found`);
     }
 
     // Validate template exists by calling template service
@@ -232,5 +231,40 @@ export class ApiGatewayService {
         },
       };
     }
+  }
+
+  async handleStatusUpdateFromQueue(payload: {
+    notification_id: string;
+    status: string;
+    metadata?: Record<string, any>;
+    timestamp?: string;
+  }): Promise<void> {
+    // Find notification
+    const notification = await this.prisma.notification.findUnique({
+      where: { id: payload.notification_id },
+    });
+
+    if (!notification) {
+      this.logger.warn(
+        `Notification ${payload.notification_id} not found for status update`,
+      );
+      return;
+    }
+
+    // Update notification status
+    await this.prisma.notification.update({
+      where: { id: payload.notification_id },
+      data: { status: payload.status as NotificationStatus },
+    });
+
+    // Create status history entry
+    await this.prisma.notification_status.create({
+      data: {
+        notification_id: payload.notification_id,
+        status: payload.status as NotificationStatus,
+        timestamp: payload.timestamp ? new Date(payload.timestamp) : new Date(),
+        error: payload.metadata?.error as string,
+      },
+    });
   }
 }
