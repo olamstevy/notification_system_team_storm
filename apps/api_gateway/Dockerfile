@@ -1,15 +1,19 @@
-
 FROM node:22-alpine AS builder
 WORKDIR /app
 
-# Install dependencies
-COPY ../../package*.json ./
-RUN npm install
+# Copy package files
+COPY package*.json ./
+COPY nest-cli.json ./
+COPY tsconfig*.json ./
 
-# Copy the app source code
-COPY ./tsconfig*.json ./
-COPY ./nest-cli.json ../../nest-cli.json
-COPY ./apps/api_gateway/src ./src
+# Install dependencies
+RUN npm ci
+
+# Copy app source
+COPY apps/api_gateway ./apps/api_gateway
+
+# Generate Prisma client
+RUN npx prisma generate --schema=./apps/api_gateway/prisma/schema.prisma
 
 # Build the app
 RUN npm run build api_gateway
@@ -19,12 +23,11 @@ FROM node:22-alpine
 
 WORKDIR /app
 
+# Copy dependencies and built files
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
-
-# Copy env
-COPY ./apps/api_gateway/.env .env
+COPY --from=builder /app/apps/api_gateway/prisma ./apps/api_gateway/prisma
 
 EXPOSE 3000
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/apps/api_gateway/main.js"]
