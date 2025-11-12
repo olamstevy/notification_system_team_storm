@@ -1,6 +1,5 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -8,15 +7,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model notification_status {
-  id String @id @default(uuid())
+model notification {
+  id                String   @id @default(uuid())
   notification_type NotificationType
-  user_id String
-  status NotificationStatus
-  request_id String @unique
-  error String?
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  user_id           String
+  template_code     String
+  variables         Json
+  request_id        String   @unique
+  priority          Int      @default(5)
+  metadata          Json?
+  status            NotificationStatus @default(pending)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  status_history notification_status[]
+}
+
+model notification_status {
+  id              String   @id @default(uuid())
+  notification_id String
+  status          NotificationStatus
+  timestamp       DateTime @default(now())
+  error           String?
+
+  notification notification @relation(fields: [notification_id], references: [id], onDelete: Cascade)
+
+  @@index([notification_id])
 }
 
 enum NotificationType {
