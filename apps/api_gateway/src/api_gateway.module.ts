@@ -5,6 +5,7 @@ import { ApiGatewayController } from './api_gateway.controller';
 import { ApiGatewayService } from './api_gateway.service';
 import { PrismaService } from './prisma.service';
 import { RabbitMQService } from './rabbitmq/rabbitmq.service';
+import { StatusConsumerService } from './rabbitmq/status-consumer.service';
 
 @Module({
   imports: [
@@ -17,6 +18,11 @@ import { RabbitMQService } from './rabbitmq/rabbitmq.service';
     }),
   ],
   controllers: [ApiGatewayController],
-  providers: [ApiGatewayService, PrismaService, RabbitMQService],
+  providers: [
+    ApiGatewayService,
+    PrismaService,
+    RabbitMQService,
+    StatusConsumerService,
+  ],
 })
-export class ApiGatewayModule {}
+export class ApiGatewayModule { }
