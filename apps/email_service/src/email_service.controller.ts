@@ -1,12 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
 import { EmailServiceService } from './email_service.service';
 
-@Controller()
+@Controller('api/v1')
 export class EmailServiceController {
   constructor(private readonly emailServiceService: EmailServiceService) {}
 
-  @Get()
-  getHello(): string {
-    return this.emailServiceService.getHello();
+  @Get('health')
+  async getHealth() {
+    return this.emailServiceService.getHealth();
   }
 }
