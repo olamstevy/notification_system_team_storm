@@ -1,69 +1,83 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
-import { TemplateServiceService } from './template_service.service';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { TemplateService } from './template_service.service';
+import * as templateDto from './template.dto';
 
-@Controller('api/v1')
-export class TemplateServiceController {
-  constructor(private readonly templateServiceService: TemplateServiceService) {}
+@Controller('api/v1/templates')
+export class TemplateController {
+  constructor(private templateService: TemplateService) { }
 
-  @Get('health')
-  async getHealth() {
-    return this.templateServiceService.getHealth();
-  }
-
-  @Post('templates/render')
-  async renderTemplate(
-    @Body() dto: {
-      template_code: string;
-      variables: Record<string, any>;
-      type?: 'email' | 'push';
-      language?: string;
-    },
-  ) {
-    const result = await this.templateServiceService.renderTemplate(dto);
+  @Post()
+  async create(@Body() body: templateDto.CreateTemplateDto) {
+    const data = await this.templateService.create(body);
     return {
       success: true,
-      message: 'Template rendered successfully',
-      data: result,
+      data,
+      message: 'template_created',
+      meta: {
+        total: 1,
+        limit: 1,
+        page: 1,
+        total_pages: 1,
+        has_next: false,
+        has_previous: false,
+      },
     };
   }
 
-  @Get('templates')
-  async getAllTemplates() {
-    const templates = await this.templateServiceService.getAllTemplates();
+  @Get(':code')
+  async getByCode(@Param('code') code: string) {
+    const data = await this.templateService.findByCode(code);
     return {
       success: true,
-      message: 'Templates retrieved successfully',
-      data: templates,
+      data,
+      message: 'template_fetched',
+      meta: {
+        total: 1,
+        limit: 1,
+        page: 1,
+        total_pages: 1,
+        has_next: false,
+        has_previous: false,
+      },
     };
   }
 
-  @Get('templates/:code')
-  async getTemplate(
+  @Post('render/:code')
+  async render(
     @Param('code') code: string,
-    @Query('type') type?: string,
-    @Query('language') language?: string,
+    @Body() body: templateDto.RenderTemplateDto,
   ) {
-    const template = await this.templateServiceService.getTemplate(
-      code,
-      type,
-      language,
-    );
+    const data = await this.templateService.render(code, body);
     return {
       success: true,
-      message: 'Template retrieved successfully',
-      data: template,
+      data,
+      message: 'template_rendered',
+      meta: {
+        total: 1,
+        limit: 1,
+        page: 1,
+        total_pages: 1,
+        has_next: false,
+        has_previous: false,
+      },
     };
   }
 
-  @Post('templates')
-  async createTemplate(@Body() templateData: any) {
-    const template = await this.templateServiceService.createTemplate(
-      templateData,
-    );
+  @Get()
+  async getAllTemplates() {
+    const templates = await this.templateService.getAll();
     return {
       success: true,
-      message: 'Template created successfully',
-      data: template,
+      data: templates,
+      message: 'All templates fetched successfully',
+      meta: {
+        total: templates.length,
+        limit: templates.length,
+        page: 1,
+        total_pages: 1,
+        has_next: false,
+        has_previous: false,
+      },
     };
   }
 }

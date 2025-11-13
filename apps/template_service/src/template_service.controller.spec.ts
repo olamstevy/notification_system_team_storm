@@ -11,7 +11,9 @@ describe('TemplateServiceController', () => {
       providers: [TemplateServiceService],
     }).compile();
 
-    templateServiceController = app.get<TemplateServiceController>(TemplateServiceController);
+    templateServiceController = app.get<TemplateServiceController>(
+      TemplateServiceController,
+    );
   });
 
   describe('root', () => {

@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { TemplateServiceController } from './template_service.controller';
-import { TemplateServiceService } from './template_service.service';
+import { TemplateController } from './template_service.controller';
+import { TemplateService } from './template_service.service';
+import { PrismaService } from './prisma.service';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true })],
-  controllers: [TemplateServiceController],
-  providers: [TemplateServiceService],
+  controllers: [TemplateController],
+  providers: [TemplateService, PrismaService],
 })
-export class TemplateServiceModule {}
+export class TemplateModule { }

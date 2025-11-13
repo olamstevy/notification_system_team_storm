@@ -30,7 +30,7 @@ export class EmailServiceService implements OnModuleInit {
     private readonly circuitBreaker: CircuitBreakerService,
     private readonly retryService: RetryService,
     private readonly httpService: HttpService,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     await this.setupEmailTransporter();
@@ -103,10 +103,7 @@ export class EmailServiceService implements OnModuleInit {
       this.logger.log(`Email sent successfully: ${message.notification_id}`);
 
       // Update notification status
-      await this.updateNotificationStatus(
-        message.notification_id,
-        'delivered',
-      );
+      await this.updateNotificationStatus(message.notification_id, 'delivered');
     } catch (error) {
       this.logger.error('Failed to process email', error);
 
@@ -135,7 +132,9 @@ export class EmailServiceService implements OnModuleInit {
 
     // Check user preferences
     if (user.preferences?.email === false) {
-      this.logger.log(`User ${message.user_id} has email notifications disabled`);
+      this.logger.log(
+        `User ${message.user_id} has email notifications disabled`,
+      );
       return;
     }
 
@@ -146,23 +145,17 @@ export class EmailServiceService implements OnModuleInit {
     );
 
     // Send email with retry and circuit breaker
-    const result = await this.retryService.executeWithRetry(
-      async () => {
-        return await this.circuitBreaker.execute(
-          'smtp',
-          async () => {
-            return await this.transporter.sendMail({
-              from: process.env.SMTP_FROM || 'noreply@notifications.com',
-              to: user.email,
-              subject: emailContent.subject,
-              html: emailContent.html,
-              text: emailContent.text,
-            });
-          },
-        );
-      },
-      `email-${message.notification_id}`,
-    );
+    const result = await this.retryService.executeWithRetry(async () => {
+      return await this.circuitBreaker.execute('smtp', async () => {
+        return await this.transporter.sendMail({
+          from: process.env.SMTP_FROM || 'noreply@notifications.com',
+          to: user.email,
+          subject: emailContent.subject,
+          html: emailContent.html,
+          text: emailContent.text,
+        });
+      });
+    }, `email-${message.notification_id}`);
 
     if (!result.success) {
       throw new Error(`Failed to send email after ${result.attempts} attempts`);
@@ -191,13 +184,10 @@ export class EmailServiceService implements OnModuleInit {
       const templateServiceUrl =
         process.env.TEMPLATE_SERVICE_URL || 'http://localhost:3002';
       const response = await firstValueFrom(
-        this.httpService.post(
-          `${templateServiceUrl}/api/v1/templates/render`,
-          {
-            template_code,
-            variables,
-          },
-        ),
+        this.httpService.post(`${templateServiceUrl}/api/v1/templates/render`, {
+          template_code,
+          variables,
+        }),
       );
       return response.data.data;
     } catch (error) {
@@ -215,15 +205,12 @@ export class EmailServiceService implements OnModuleInit {
       const apiGatewayUrl =
         process.env.API_GATEWAY_URL || 'http://localhost:3000';
       await firstValueFrom(
-        this.httpService.post(
-          `${apiGatewayUrl}/api/v1/email/status`,
-          {
-            notification_id,
-            status,
-            timestamp: new Date().toISOString(),
-            error,
-          },
-        ),
+        this.httpService.post(`${apiGatewayUrl}/api/v1/email/status`, {
+          notification_id,
+          status,
+          timestamp: new Date().toISOString(),
+          error,
+        }),
       );
     } catch (error) {
       this.logger.error('Failed to update notification status', error);
@@ -257,7 +244,10 @@ export class EmailServiceService implements OnModuleInit {
 
     return {
       success: smtpHealthy && rabbitmqHealthy,
-      message: smtpHealthy && rabbitmqHealthy ? 'Email service is healthy' : 'Email service is unhealthy',
+      message:
+        smtpHealthy && rabbitmqHealthy
+          ? 'Email service is healthy'
+          : 'Email service is unhealthy',
       data: {
         status: smtpHealthy && rabbitmqHealthy ? 'healthy' : 'unhealthy',
         timestamp: new Date().toISOString(),

@@ -7,15 +7,8 @@ import { CircuitBreakerService } from '../../../libs/common/src/circuit-breaker/
 import { RetryService } from '../../../libs/common/src/retry/retry.service';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    HttpModule,
-  ],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), HttpModule],
   controllers: [EmailServiceController],
-  providers: [
-    EmailServiceService,
-    CircuitBreakerService,
-    RetryService,
-  ],
+  providers: [EmailServiceService, CircuitBreakerService, RetryService],
 })
-export class EmailServiceModule {}
+export class EmailServiceModule { }
