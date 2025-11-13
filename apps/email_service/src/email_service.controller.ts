@@ -14,22 +14,7 @@ export class EmailServiceController {
   constructor(private readonly emailServiceService: EmailServiceService) { }
 
   @Get('health')
-  @HttpCode(HttpStatus.OK)
-  async healthCheck() {
-    return {
-      success: true,
-      data: await this.emailServiceService.healthCheck(),
-      message: 'Email service is healthy',
-    };
-  }
-
-  @Get('status')
-  @HttpCode(HttpStatus.OK)
-  async getStatus() {
-    return {
-      success: true,
-      data: await this.emailServiceService.getServiceStatus(),
-      message: 'Service status retrieved',
-    };
+  async getHealth() {
+    return this.emailServiceService.getHealth();
   }
 }

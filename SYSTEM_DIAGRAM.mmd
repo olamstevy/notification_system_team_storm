@@ -1,0 +1,68 @@
+graph TB
+    %% Clients
+    Client[("🌐 Clients<br/>(Web/Mobile/API)")]
+    
+    %% API Gateway
+    Client -->|HTTP POST| Gateway["🔷 API Gateway Service<br/>Port: 3000<br/>━━━━━━━━━━━━━━<br/>✓ Authentication<br/>✓ Validation<br/>✓ Idempotency Check<br/>✓ Status Tracking"]
+    
+    %% API Gateway to other services
+    Gateway -->|REST: Validate User| UserService["🔷 User Service<br/>Port: 3001<br/>━━━━━━━━━━━━━━<br/>• User Management<br/>• Preferences<br/>• Push Tokens<br/>• JWT Auth"]
+    
+    Gateway -->|REST: Get Template| TemplateService["🔷 Template Service<br/>Port: 3002<br/>━━━━━━━━━━━━━━<br/>• Template Storage<br/>• Variable Substitution<br/>• Multi-language<br/>• Version History"]
+    
+    Gateway -->|Publish Message| RabbitMQ["🟠 RabbitMQ Message Broker<br/>━━━━━━━━━━━━━━━━━━<br/>Exchange: notifications.direct<br/>━━━━━━━━━━━━━━━━━━"]
+    
+    %% RabbitMQ Queues
+    RabbitMQ -->|Route: email| EmailQueue["📧 email.queue<br/>(Durable)"]
+    RabbitMQ -->|Route: push| PushQueue["📱 push.queue<br/>(Durable)"]
+    RabbitMQ -.->|Failed Messages| DLQ["⚠️ failed.queue<br/>(Dead Letter Queue)"]
+    
+    %% Worker Services
+    EmailQueue -->|Consume| EmailService["🟢 Email Service<br/>Port: 3003<br/>━━━━━━━━━━━━━━<br/>◆ Circuit Breaker<br/>↻ Retry System<br/>• Max 5 attempts<br/>• Exponential backoff<br/>━━━━━━━━━━━━━━<br/>Sends via: SMTP"]
+    
+    PushQueue -->|Consume| PushService["🟢 Push Service<br/>Port: 3004<br/>━━━━━━━━━━━━━━<br/>◆ Circuit Breaker<br/>↻ Retry System<br/>• Max 5 attempts<br/>• Exponential backoff<br/>━━━━━━━━━━━━━━<br/>Sends via: FCM"]
+    
+    %% Worker services call other services
+    EmailService -->|Get User Data| UserService
+    EmailService -->|Render Template| TemplateService
+    EmailService -->|Update Status| Gateway
+    
+    PushService -->|Get User Data| UserService
+    PushService -->|Render Template| TemplateService
+    PushService -->|Update Status| Gateway
+    
+    %% External Services
+    EmailService -->|SMTP| SMTP["📮 SMTP Server<br/>(Gmail/SendGrid)"]
+    PushService -->|FCM API| FCM["🔔 FCM Server<br/>(Firebase)"]
+    
+    %% Failure handling
+    EmailService -.->|After 5 retries| DLQ
+    PushService -.->|After 5 retries| DLQ
+    
+    %% Databases
+    Gateway -->|Read/Write| GatewayDB[("🗄️ PostgreSQL<br/>api_gateway_db")]
+    UserService -->|Read/Write| UserDB[("🗄️ PostgreSQL<br/>user_service_db")]
+    TemplateService -->|Read/Write| TemplateDB[("🗄️ PostgreSQL<br/>template_service_db")]
+    
+    %% Redis Cache
+    UserService -->|Cache| Redis[("💾 Redis Cache<br/>Port: 6379<br/>━━━━━━━━━━<br/>• User preferences<br/>• Rate limiting<br/>• Session cache")]
+    Gateway -->|Cache| Redis
+    
+    %% Styling
+    classDef apiGateway fill:#007bff,stroke:#0056b3,stroke-width:3px,color:#fff
+    classDef services fill:#007bff,stroke:#0056b3,stroke-width:2px,color:#fff
+    classDef workers fill:#28a745,stroke:#1e7e34,stroke-width:2px,color:#fff
+    classDef queue fill:#fd7e14,stroke:#dc6502,stroke-width:2px,color:#fff
+    classDef database fill:#6f42c1,stroke:#4e2a84,stroke-width:2px,color:#fff
+    classDef external fill:#6c757d,stroke:#495057,stroke-width:2px,color:#fff
+    classDef dlq fill:#dc3545,stroke:#a71d2a,stroke-width:2px,color:#fff
+    classDef cache fill:#17a2b8,stroke:#117a8b,stroke-width:2px,color:#fff
+    
+    class Gateway apiGateway
+    class UserService,TemplateService services
+    class EmailService,PushService workers
+    class RabbitMQ,EmailQueue,PushQueue queue
+    class GatewayDB,UserDB,TemplateDB database
+    class SMTP,FCM external
+    class DLQ dlq
+    class Redis cache
